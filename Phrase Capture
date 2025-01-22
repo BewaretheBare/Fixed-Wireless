@@ -1,0 +1,405 @@
+%jdbc_CII(hive)
+DROP TABLE IF EXISTS tda_sb_bqoe.SCI_FW_04_mentions;
+CREATE TABLE tda_sb_bqoe.SCI_FW_04_mentions AS (
+
+/* within tda_sb_bqoe.SCI_FW_03_serviceable, look for fixed wireless mentions*/
+SELECT
+  	s.ucid
+  	,t.interactiondateet
+	,MAX(
+		CASE 
+		/*phrases said by agent or customer*/
+		WHEN t.phrase LIKE '%INTERNET SPEED%' THEN 1
+		WHEN t.phrase LIKE '%BROADBAND SPEED%'THEN 1
+		WHEN t.phrase LIKE '%MODEM SPEED%' THEN 1
+		WHEN t.phrase LIKE '%WIRELESS SPEED%' THEN 1
+		WHEN t.phrase LIKE '%NETWORK SPEED%' THEN 1
+		ELSE 0
+	END) AS TP_Speed
+	
+	,MAX(
+		CASE 
+		/*phrases said by agent or customer*/
+		WHEN t.phrase LIKE '%RELIABLE%' THEN 1
+		WHEN t.phrase LIKE '%SIGNAL LOSS%' THEN 1
+		WHEN t.phrase LIKE '%BROADBAND ISSUES%' THEN 1
+		WHEN t.phrase LIKE '%SIGHT OF TOWER%' THEN 1
+		WHEN t.phrase LIKE '%DIRECT SIGHT TO TOWER%' THEN 1
+		WHEN t.phrase LIKE '%LINE OF SIGHT%' THEN 1
+		ELSE 0
+	END) AS TP_reliabilty
+	/*removed redundent phrases	'%BAD WEATHER%', '%WEATHER CHANGES%','%CHANGES IN WEATHER%','%WEATHER ISSUE%','%WEATHER REASON%'*/
+	,MAX(
+		CASE 
+		/*phrases said by agent or customer*/
+		WHEN t.phrase LIKE '%WEATHER%' THEN 1
+		ELSE 0
+	END) AS TP_weather
+	/*removed redundent phrases	'%PRICES ARE DIFFERENT%','%PRICES%','%BEST PRICE%','%LOWER PRICE%','%PRICE WISE%','%DIFFERENT PRICE%','%MIGHT BE CHEAPER%','%APPEARS CHEAPER%'*/
+	,MAX(
+		CASE 
+		/*phrases said by agent or customer*/
+		WHEN t.phrase LIKE '%PRICE%'THEN 1
+		WHEN t.phrase LIKE '%AFFORDABLE%' THEN 1
+		WHEN t.phrase LIKE '%CHEAPER%' THEN 1
+		WHEN t.phrase LIKE '%EXPENSIVE%' THEN 1
+		ELSE 0
+	END) AS TP_price		
+		
+	,MAX(
+		CASE 
+		/*phrases said by agent or customer*/
+		WHEN t.phrase LIKE '%CAP SPEED%' THEN 1
+		WHEN t.phrase LIKE '%LIMITED SPEED%' THEN 1
+		WHEN t.phrase LIKE '%LIMIT DATA%' THEN 1
+		WHEN t.phrase LIKE '%LIMIT YOUR DATA%' THEN 1		
+		WHEN t.phrase LIKE '%DATA CAP%' THEN 1		
+		WHEN t.phrase LIKE '%CAP YOUR DATA%' THEN 1		
+		WHEN t.phrase LIKE '%CAP THE DATA%' THEN 1		
+		WHEN t.phrase LIKE '%DATA LIMIT%' THEN 1
+		WHEN t.phrase LIKE '%DATA LIMITS%' THEN 1
+		WHEN t.phrase LIKE '%DATA TRAFFIC%'THEN 1
+		WHEN t.phrase LIKE '%CAPPED DATA%'THEN 1
+		ELSE 0
+	END) AS TP_datacap			
+							
+	,MAX(
+		CASE 
+		/*phrases said by agent or customer*/
+		WHEN t.phrase LIKE '%COMPETITOR%' THEN 1
+		WHEN t.phrase LIKE '%ATT%' THEN 1
+		WHEN t.phrase LIKE '%AT and T%' THEN 1
+		WHEN t.phrase LIKE '%EIGHTEEN T%' THEN 1
+		WHEN t.phrase LIKE '%VERIZON%' THEN 1
+		WHEN t.phrase LIKE '%T MOBILE%' THEN 1
+		WHEN t.phrase LIKE '%TMOBILE%' THEN 1
+		WHEN t.phrase LIKE '%TEE MOBILE%' THEN 1
+		WHEN t.phrase LIKE '%COMCAST%' THEN 1
+		WHEN t.phrase LIKE '%DIRECT TV%' THEN 1
+		WHEN t.phrase LIKE '%DIRECTV%' THEN 1
+		WHEN t.phrase LIKE '%DISNEY%' THEN 1
+		WHEN t.phrase LIKE '%METRO%' THEN 1
+		WHEN t.phrase LIKE '%NETFLIX%' THEN 1
+		WHEN t.phrase LIKE '%STRAIGHT TALK%' THEN 1
+		WHEN t.phrase LIKE '%YOU TUBE%' THEN 1
+		WHEN t.phrase LIKE '%YOUTUBE%' THEN 1
+		ELSE 0
+		END) AS Competitor_any
+		
+		,MAX(
+		CASE 
+		WHEN t.party = 'Customer' THEN 
+			CASE 
+			/*phrases only said by customer*/
+				WHEN t.phrase LIKE '%COMPETITOR%' THEN 1
+				WHEN t.phrase LIKE '%ATT%' THEN 1
+				WHEN t.phrase LIKE '%AT and T%' THEN 1
+				WHEN t.phrase LIKE '%EIGHTEEN T%' THEN 1
+				WHEN t.phrase LIKE '%VERIZON%' THEN 1
+				WHEN t.phrase LIKE '%T MOBILE%' THEN 1
+				WHEN t.phrase LIKE '%TMOBILE%' THEN 1
+				WHEN t.phrase LIKE '%TEE MOBILE%' THEN 1
+				WHEN t.phrase LIKE '%COMCAST%' THEN 1
+				WHEN t.phrase LIKE '%DIRECT TV%' THEN 1
+				WHEN t.phrase LIKE '%DIRECTV%' THEN 1
+				WHEN t.phrase LIKE '%DISNEY%' THEN 1
+				WHEN t.phrase LIKE '%METRO%' THEN 1
+				WHEN t.phrase LIKE '%NETFLIX%' THEN 1
+				WHEN t.phrase LIKE '%STRAIGHT TALK%' THEN 1
+				WHEN t.phrase LIKE '%YOU TUBE%' THEN 1
+				WHEN t.phrase LIKE '%YOUTUBE%' THEN 1
+				ELSE 0 
+			END
+		ELSE 0
+		END) AS Competitor_Cust	
+		
+		,MAX(
+				CASE 
+				WHEN t.party = 'Agent' THEN 
+					CASE 
+					/*phrases only said by customer*/
+						WHEN t.phrase LIKE '%COMPETITOR%' THEN 1
+						WHEN t.phrase LIKE '%ATT%' THEN 1
+						WHEN t.phrase LIKE '%AT and T%' THEN 1
+						WHEN t.phrase LIKE '%EIGHTEEN T%' THEN 1
+						WHEN t.phrase LIKE '%VERIZON%' THEN 1
+						WHEN t.phrase LIKE '%T MOBILE%' THEN 1
+						WHEN t.phrase LIKE '%TMOBILE%' THEN 1
+						WHEN t.phrase LIKE '%TEE MOBILE%' THEN 1
+						WHEN t.phrase LIKE '%COMCAST%' THEN 1
+						WHEN t.phrase LIKE '%DIRECT TV%' THEN 1
+						WHEN t.phrase LIKE '%DIRECTV%' THEN 1
+						WHEN t.phrase LIKE '%DISNEY%' THEN 1
+						WHEN t.phrase LIKE '%METRO%' THEN 1
+						WHEN t.phrase LIKE '%NETFLIX%' THEN 1
+						WHEN t.phrase LIKE '%STRAIGHT TALK%' THEN 1
+						WHEN t.phrase LIKE '%YOU TUBE%' THEN 1
+						WHEN t.phrase LIKE '%YOUTUBE%' THEN 1
+						ELSE 0 
+					END
+				ELSE 0
+				END) AS Competitor_Agent
+	,MAX(CASE 
+			WHEN q.queryname = 'AD Agt Business Internet Discovery E' THEN 1    
+		    WHEN q.queryname = 'Agt Business Internet Discovery E v2' THEN 1
+		    WHEN q.queryname = 'Cx Mobile Pitch Keeping Internet' THEN 1
+		    WHEN q.queryname = 'AD Agt Business Internet Discovery H' THEN 1
+		    WHEN q.queryname = 'AD Agt Service Provider' THEN 1
+		    WHEN q.queryname = 'AD Agt Service Provider'THEN 1
+		    WHEN q.queryname = 'AD Service Provider' THEN 1
+		    WHEN q.queryname = 'Agt Business Internet Discovery E v2' THEN 1
+		    WHEN q.queryname = 'Agt Discovery Internet WFH' THEN 1
+		    WHEN q.queryname = 'Agt Discovery' THEN 1
+		    WHEN q.queryname = 'Agt Discovery Video A' THEN 1
+		    WHEN q.queryname = 'Agt MP Device Discovery' THEN 1
+		    WHEN q.queryname = 'Agt MP Discovery Before Pitch' THEN 1
+		    WHEN q.queryname = 'Agt MP Discovery Device Preference' THEN 1
+		    WHEN q.queryname = 'Agt MP Discovery Provider' THEN 1
+		    WHEN q.queryname = 'BQ_Agt_Discovery_Channels_A' THEN 1
+		    WHEN q.queryname = 'BQ_Agt_Discovery_Channels_B' THEN 1
+		    WHEN q.queryname = 'BQ_Agt_Discovery_Entertainment' THEN 1
+		    WHEN q.queryname = 'BQ_Agt_Discovery_Internet_FDN_A' THEN 1
+		    WHEN q.queryname = 'BQ_Discovery_Internet_FDN' THEN 1
+    		ELSE 0 END) AS CF_discovery
+	,MAX(CASE 
+			WHEN q.queryname = 'BQI_Cx_Cost_Hesitation' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Hesitation_1.2' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Hesitation_3.1' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Reten_Objection_BetterDeal' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Reten_Objection_Cancel' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Reten_Objection_Cost' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Reten_Objection_Customer_Need' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Reten_Objection_Dont_Need_1.0' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Reten_Objection_Not_Interested' THEN 1
+			WHEN q.queryname = 'BQI_Cx_Reten_Objection_Price_2.0' THEN 1
+			WHEN q.queryname = 'Cx Managing Objections A' THEN 1
+			WHEN q.queryname = 'Cx Managing Objections B' THEN 1
+			WHEN q.queryname = 'Cx Mobile Objections A' THEN 1
+			WHEN q.queryname = 'SMBR Agt Acknowledgement Addressing Hesitations 1' THEN 1
+			WHEN q.queryname = 'SMBR Agt Acknowledgement Addressing Hesitations 2' THEN 1
+			WHEN q.queryname = 'SMBR Agt Respond Addressing Hesitations 1' THEN 1
+			WHEN q.queryname = 'SMBR Cx Bill Increase Concerns' THEN 1
+			WHEN q.queryname = 'SMBR Cx Cant Afford' THEN 1
+			WHEN q.queryname = 'SMBR Cx Cost Hesitation Expensive' THEN 1
+			WHEN q.queryname = 'SMBR Cx Cost Hesitation Price' THEN 1
+			WHEN q.queryname = 'SMBR Cx Cost Hesitation Save Money' THEN 1
+			WHEN q.queryname = 'SMBR Cx Cost Hesitation1' THEN 1
+			WHEN q.queryname = 'SMBR Cx Dont Need' THEN 1
+			WHEN q.queryname = 'SMBR Cx Managing Objections A' THEN 1
+			WHEN q.queryname = 'SMBR Cx Managing Objections B' THEN 1
+			WHEN q.queryname = 'SMBR Cx Objection BetterDeal' THEN 1
+			WHEN q.queryname = 'SMBR Cx Objection Cancel' THEN 1
+			WHEN q.queryname = 'SMBR Cx Objection Cost' THEN 1
+			WHEN q.queryname = 'SMBR Cx Objection Expensive' THEN 1 
+			WHEN q.queryname = 'SMBR Cx Objection Price' THEN 1 
+			ELSE 0 END) AS CF_objection
+	,MAX(CASE 
+			WHEN q.queryname = 'AD Add Channels' THEN 1
+			WHEN q.queryname = 'AD Agt Bundle Discount V3' THEN 1
+			WHEN q.queryname = 'AD Agt Bundle Package' THEN 1
+			WHEN q.queryname = 'AD Agt Repackage' THEN 1
+			WHEN q.queryname = 'AD Agt Upgrade Education' THEN 1
+			WHEN q.queryname = 'AD Cx Upgrade Package or Services SMB' THEN 1
+			WHEN q.queryname = 'AD Cx Upgrade to Add Channel' THEN 1
+			WHEN q.queryname = 'Agt Core Service Pitch SMB' THEN 1
+			WHEN q.queryname = 'Agt Lead w Triple' THEN 1
+			WHEN q.queryname = 'Agt Package Price A 1.1' THEN 1
+			WHEN q.queryname = 'Agt Recap Package Price' THEN 1
+			WHEN q.queryname = 'BQI_Sale_Cost_Close_1.0' THEN 1
+			WHEN q.queryname = 'BQI_Triple_Play_Pitch_1.3' THEN 1
+			WHEN q.queryname = 'Double Triple Play Pitch' THEN 1
+			ELSE 0 END) AS CF_bundle_offer
+	,MAX(CASE 
+			WHEN q.queryname = 'AD Agt Better Package' THEN 1
+			WHEN q.queryname = 'AD Agt Better Pricing' THEN 1
+			WHEN q.queryname = 'AD Agt Cheaper  Price' THEN 1
+			WHEN q.queryname = 'AD Agt Lower Price' THEN 1
+			WHEN q.queryname = 'AD Agt Lower Rate' THEN 1
+			WHEN q.queryname = 'AD Agt Lower Your Bill' THEN 1
+			WHEN q.queryname = 'AD Agt New Package Right Size' THEN 1
+			WHEN q.queryname = 'AD Agt Save Money' THEN 1
+			WHEN q.queryname = 'AD Agt Save Offer' THEN 1
+			WHEN q.queryname = 'AD Agt Special Offer' THEN 1
+			WHEN q.queryname = 'AD Better Deal' THEN 1
+			WHEN q.queryname = 'Agt Better Deal' THEN 1
+			WHEN q.queryname = 'Agt Offer Better Deal' THEN 1
+			WHEN q.queryname = 'Offer Strategy Offer Eligibility' THEN 1
+    		ELSE 0 END) AS CF_save_attempt			
+	,MAX(
+		CASE 
+		/*phrases said by agent or customer*/
+		WHEN t.phrase LIKE '%FIXED WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%FIX WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%FIXED WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%FIX WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIXED WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIXED WIRE LESS%'THEN 1
+		WHEN t.phrase LIKE '%5 G FIX WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIX WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE "%THEY'RE FIXED WHITE%" THEN 1
+		WHEN t.phrase LIKE '%FIXED WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%FIX WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%FIXED WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%FIX WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIXED WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIXED WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIX WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIX WIRE LESS%'THEN 1
+		WHEN t.phrase LIKE "%THEY'RE FIXED WHITE%"THEN 1
+		WHEN t.phrase LIKE '%5 G HOME NETWORK%' THEN 1
+		WHEN t.phrase LIKE '%ARISE BROADBAND%' THEN 1
+		WHEN t.phrase LIKE '%RISE BROADBAND%' THEN 1
+		WHEN t.phrase LIKE '%STARRY INTERNET%' THEN 1
+		WHEN t.phrase LIKE '%S T A R R Y%' THEN 1
+		WHEN t.phrase LIKE '%STARRY FIX WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%STARRY FIXED WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%6 WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%6 WIRE LESS%'THEN 1
+		WHEN t.phrase LIKE '%FIXED WHITE%' THEN 1
+		WHEN t.phrase LIKE '%5 G HOME%' THEN 1
+		WHEN t.phrase LIKE '%ULTRA HOME%' THEN 1
+		WHEN t.phrase LIKE '%ENTERPRISE BROADBAND%' THEN 1
+		WHEN t.phrase LIKE '%5 G UM%' THEN 1
+		ELSE 0
+	END) AS fwmention	
+	,MAX(
+		CASE 
+		/*phrases only said by customer*/
+		WHEN t.party = 'Customer' THEN 
+			CASE 
+			WHEN t.phrase LIKE '%FIXED WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%FIX WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%FIXED WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%FIX WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIXED WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIXED WIRE LESS%'THEN 1
+			WHEN t.phrase LIKE '%5 G FIX WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIX WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE "%THEY'RE FIXED WHITE%" THEN 1
+			WHEN t.phrase LIKE '%FIXED WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%FIX WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%FIXED WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%FIX WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIXED WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIXED WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIX WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIX WIRE LESS%'THEN 1
+			WHEN t.phrase LIKE "%THEY'RE FIXED WHITE%"THEN 1
+			WHEN t.phrase LIKE '%5 G HOME NETWORK%' THEN 1
+			WHEN t.phrase LIKE '%ARISE BROADBAND%' THEN 1
+			WHEN t.phrase LIKE '%RISE BROADBAND%' THEN 1
+			WHEN t.phrase LIKE '%STARRY INTERNET%' THEN 1
+			WHEN t.phrase LIKE '%S T A R R Y%' THEN 1
+			WHEN t.phrase LIKE '%STARRY FIX WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%STARRY FIXED WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%6 WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%6 WIRE LESS%'THEN 1
+			WHEN t.phrase LIKE '%FIXED WHITE%' THEN 1
+			WHEN t.phrase LIKE '%5 G HOME%' THEN 1
+			WHEN t.phrase LIKE '%ULTRA HOME%' THEN 1
+			WHEN t.phrase LIKE '%ENTERPRISE BROADBAND%' THEN 1
+			WHEN t.phrase LIKE '%5 G UM%' THEN 1
+			ELSE 0 
+					END
+				ELSE 0
+				END) AS fwmention_customer
+	
+	,MAX(
+		CASE 
+		/*phrases only said by agent*/
+		WHEN t.party = 'Agent' THEN 
+			CASE 
+			WHEN t.phrase LIKE '%FIXED WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%FIX WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%FIXED WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%FIX WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIXED WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIXED WIRE LESS%'THEN 1
+			WHEN t.phrase LIKE '%5 G FIX WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIX WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE "%THEY'RE FIXED WHITE%" THEN 1
+			WHEN t.phrase LIKE '%FIXED WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%FIX WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%FIXED WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%FIX WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIXED WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIXED WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIX WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%5 G FIX WIRE LESS%'THEN 1
+			WHEN t.phrase LIKE "%THEY'RE FIXED WHITE%"THEN 1
+			WHEN t.phrase LIKE '%5 G HOME NETWORK%' THEN 1
+			WHEN t.phrase LIKE '%ARISE BROADBAND%' THEN 1
+			WHEN t.phrase LIKE '%RISE BROADBAND%' THEN 1
+			WHEN t.phrase LIKE '%STARRY INTERNET%' THEN 1
+			WHEN t.phrase LIKE '%S T A R R Y%' THEN 1
+			WHEN t.phrase LIKE '%STARRY FIX WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%STARRY FIXED WIRE LESS%' THEN 1
+			WHEN t.phrase LIKE '%6 WIRELESS%' THEN 1
+			WHEN t.phrase LIKE '%6 WIRE LESS%'THEN 1
+			WHEN t.phrase LIKE '%FIXED WHITE%' THEN 1
+			WHEN t.phrase LIKE '%5 G HOME%' THEN 1
+			WHEN t.phrase LIKE '%ULTRA HOME%' THEN 1
+			WHEN t.phrase LIKE '%ENTERPRISE BROADBAND%' THEN 1
+			WHEN t.phrase LIKE '%5 G UM%' THEN 1
+			ELSE 0 
+			END
+		ELSE 0
+		END) AS fwmention_agent	
+FROM 
+    dl_prod_nexidia_v.speech_deu_transcript t 
+LEFT JOIN 
+    dl_prod_nexidia_v.speech_deu_QueryHits q
+ON
+    t.ucid = q.ucid
+LEFT JOIN 
+    tda_sb_bqoe.SCI_FW_01_calls c
+ON 
+    q.ucid = c.ucid
+LEFT JOIN
+    tda_sb_bqoe.SCI_SalesTable s
+ON 
+    s.ucid = t.ucid
+WHERE 
+    t.interactiondateET BETWEEN DATE_ADD(current_date(),-222) AND current_date()
+AND
+    s.serviceable != '0'
+AND CASE 
+		/*phrases said by agent or customer*/
+		WHEN t.phrase LIKE '%FIXED WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%FIX WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%FIXED WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%FIX WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIXED WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIXED WIRE LESS%'THEN 1
+		WHEN t.phrase LIKE '%5 G FIX WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIX WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE "%THEY'RE FIXED WHITE%" THEN 1
+		WHEN t.phrase LIKE '%FIXED WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%FIX WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%FIXED WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%FIX WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIXED WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIXED WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIX WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%5 G FIX WIRE LESS%'THEN 1
+		WHEN t.phrase LIKE "%THEY'RE FIXED WHITE%"THEN 1
+		WHEN t.phrase LIKE '%5 G HOME NETWORK%' THEN 1
+		WHEN t.phrase LIKE '%ARISE BROADBAND%' THEN 1
+		WHEN t.phrase LIKE '%RISE BROADBAND%' THEN 1
+		WHEN t.phrase LIKE '%STARRY INTERNET%' THEN 1
+		WHEN t.phrase LIKE '%S T A R R Y%' THEN 1
+		WHEN t.phrase LIKE '%STARRY FIX WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%STARRY FIXED WIRE LESS%' THEN 1
+		WHEN t.phrase LIKE '%6 WIRELESS%' THEN 1
+		WHEN t.phrase LIKE '%6 WIRE LESS%'THEN 1
+		WHEN t.phrase LIKE '%FIXED WHITE%' THEN 1
+		WHEN t.phrase LIKE '%5 G HOME%' THEN 1
+		WHEN t.phrase LIKE '%ULTRA HOME%' THEN 1
+		WHEN t.phrase LIKE '%ENTERPRISE BROADBAND%' THEN 1
+		WHEN t.phrase LIKE '%5 G UM%' THEN 1
+		ELSE 0
+	END = 1
+	GROUP BY
+	   s.ucid
+	   ,t.interactiondateet
+)
